@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Proje Takip Sistemi</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 40px; background: #f4f4f4; }
+        h1 { color: #2c3e50; }
+        form, table { background: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; }
+        table, th, td { border: 1px solid #ccc; }
+        th, td { padding: 10px; text-align: left; }
+        input[type="text"], input[type="email"], input[type="date"], select {
+            width: 100%; padding: 8px; margin: 5px 0;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            background: #2ecc71;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Öğrenci Proje Takip Paneli</h1>
+
+    <form th:action="@{/submit}" method="post" th:object="${student}">
+        <label>Ad Soyad:</label>
+        <input type="text" th:field="*{name}" required />
+
+        <label>E-posta:</label>
+        <input type="email" th:field="*{email}" required />
+
+        <label>Proje Başlığı:</label>
+        <input type="text" th:field="*{projectTitle}" required />
+
+        <label>Proje Durumu:</label>
+        <select th:field="*{status}">
+            <option value="Planlandı">Planlandı</option>
+            <option value="Devam Ediyor">Devam Ediyor</option>
+            <option value="Tamamlandı">Tamamlandı</option>
+        </select>
+
+        <label>Teslim Tarihi:</label>
+        <input type="date" th:field="*{deliveryDate}" required />
+
+        <input type="submit" value="Projeyi Kaydet" />
+    </form>
+
+    <h2>Kayıtlı Öğrenciler</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Ad Soyad</th>
+                <th>E-posta</th>
+                <th>Proje Başlığı</th>
+                <th>Durum</th>
+                <th>Teslim Tarihi</th>
+                <th>İşlem</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="s, iterStat : ${students}">
+                <td th:text="${iterStat.index + 1}">1</td>
+                <td th:text="${s.name}">Ad</td>
+                <td th:text="${s.email}">E-posta</td>
+                <td th:text="${s.projectTitle}">Proje</td>
+                <td th:text="${s.status}">Durum</td>
+                <td th:text="${s.deliveryDate}">Tarih</td>
+                <td>
+    				<a th:href="@{'/delete/' + ${s.id}}" 
+      				 onclick="return confirm('Silmek istediğine emin misin?')"
+      				 style="color: red;">Sil</a>
+      				 <a th:href="@{'/edit/' + ${s.id}}" style="margin-right: 10px;">Güncelle</a>
+				</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Öğretmen Paneli</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body {
+            background-color: #f0f2f5;
+        }
+
+        .sidebar {
+            background-color: #2c3e50;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            color: white;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar h4 {
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            margin: 0.5rem 0;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background 0.2s, padding-left 0.2s;
+        }
+
+        .sidebar a:hover {
+            background-color: #1a252f;
+            padding-left: 1.5rem;
+        }
+
+        .sidebar a.active {
+            background-color: #1abc9c;
+            color: white;
+            font-weight: 600;
+        }
+
+        .menu-btn {
+            display: none;
+            margin: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .menu-btn {
+                display: inline-block;
+            }
+
+            #sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100%;
+                width: 200px;
+                transform: translateX(-100%);
+                z-index: 1000;
+                background-color: #2c3e50;
+            }
+
+            #sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .dashboard-header {
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 0.5rem;
+        }
+
+        .table th {
+            background-color: #e9ecef;
+        }
+
+        .card-style {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.05);
+            padding: 2rem;
+        }
+
+        .card-style.projects { border-left: 4px solid #3498db; }
+        .card-style.announcements { border-left: 4px solid #e67e22; }
+        .card-style.students { border-left: 4px solid #2ecc71; }
+
+        .form-label {
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Mobil Menü Butonu -->
+<button class="btn btn-outline-dark d-md-none menu-btn" onclick="toggleSidebar()">☰ Menü</button>
+
+<div class="row g-0 position-relative">
+    <!-- Sidebar -->
+    <div id="sidebar" class="col-md-2 sidebar">
+        <h4>📘 Öğretmen Paneli</h4>
+        <a onclick="showSection('projects')">📄 Projelerim</a>
+        <a onclick="showSection('announcements')">📢 Duyurular</a>
+        <a onclick="showSection('students')">👨‍🎓 Öğrencilerim</a>
+        <a href="/logout" class="text-danger mt-4 d-block fw-bold">🚪 Çıkış Yap</a>
+    </div>
+
+    <!-- İçerik -->
+    <div class="col-md-10 p-4 main-content">
+        <!-- 📄 Projelerim -->
+        <div id="projects" class="section active">
+            <h2 class="dashboard-header">📄 Projelerim</h2>
+            <div class="card-style projects">
+                <table class="table table-bordered align-middle text-center">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Ad Soyad</th>
+                            <th>E-posta</th>
+                            <th>Proje Başlığı</th>
+                            <th>Durum</th>
+                            <th>Teslim Tarihi</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="s, iterStat : ${students}" th:classappend="${s.status == 'Onaylandı'} ? 'table-success'">
+                            <td th:text="${iterStat.index + 1}">1</td>
+                            <td th:text="${s.name}">Ad</td>
+                            <td th:text="${s.email}">E-posta</td>
+                            <td th:text="${s.projectTitle}">Proje</td>
+                            <td th:text="${s.status}">Durum</td>
+                            <td th:text="${s.deliveryDate}">Tarih</td>
+                            <td>
+                                <a th:href="@{'/edit/' + ${s.id}}" class="btn btn-sm btn-warning">Güncelle</a>
+                                <a th:href="@{'/delete/' + ${s.id}}" class="btn btn-sm btn-danger"
+                                   onclick="return confirm('Silmek istediğinizden emin misiniz?')">Sil</a>
+                                <form th:action="@{'/approve/' + ${s.id}}" method="post" style="display:inline">
+                                    <button type="submit" class="btn btn-sm btn-success" th:if="${s.status != 'Onaylandı'}">Onayla</button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 📢 Duyurular -->
+        <div id="announcements" class="section">
+            <h2 class="dashboard-header">📢 Danışman Duyuruları</h2>
+            <div class="card-style announcements mb-4">
+                <form th:action="@{/teacher/announcements}" method="post">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Başlık</label>
+                        <input type="text" class="form-control" id="title" name="title" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">İçerik</label>
+                        <textarea class="form-control" id="content" name="content" rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Duyuru Yayınla</button>
+                </form>
+            </div>
+
+            <div th:if="${announcements != null and !announcements.isEmpty()}">
+                <div th:each="a : ${announcements}" class="card-style announcements mb-3">
+                    <h5 th:text="${a.title}">Başlık</h5>
+                    <p th:text="${a.content}">İçerik</p>
+                    <small class="text-muted" th:text="${#temporals.format(a.createdAt, 'dd.MM.yyyy HH:mm')}">Tarih</small>
+                </div>
+            </div>
+            <div th:if="${announcements == null or announcements.isEmpty()}" class="text-muted">
+                Henüz duyuru bulunmamaktadır.
+            </div>
+        </div>
+
+        <!-- 👨‍🎓 Öğrencilerim -->
+        <div id="students" class="section">
+            <h2 class="dashboard-header">👨‍🎓 Öğrencilerim</h2>
+            <div class="card-style students">
+                <table class="table table-bordered align-middle text-center">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Ad Soyad</th>
+                            <th>E-posta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="s, iterStat : ${uniqueStudents}">
+                            <td th:text="${iterStat.index + 1}">1</td>
+                            <td th:text="${s.name}">Ad</td>
+                            <td th:text="${s.email}">E-posta</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h4 class="mt-5">📎 Gönderilen Ödevler</h4>
+            <div th:if="${submissions != null and !submissions.isEmpty()}" class="card-style students mt-3">
+                <table class="table table-bordered align-middle text-center">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Öğrenci</th>
+                            <th>Dosya Adı</th>
+                            <th>Gönderim Tarihi</th>
+                            <th>İndir</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="s, iterStat : ${submissions}">
+                            <td th:text="${iterStat.index + 1}">1</td>
+                            <td th:text="${s.studentUsername}">ogrenci</td>
+                            <td th:text="${s.fileName}">dosya.pdf</td>
+                            <td th:text="${#temporals.format(s.submittedAt, 'dd.MM.yyyy HH:mm')}">Zaman</td>
+                            <td>
+                                <a th:href="@{'/uploads/' + ${s.fileName}}" target="_blank" class="btn btn-sm btn-outline-primary">İndir</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${submissions == null or submissions.isEmpty()}" class="text-muted mt-3">
+                Henüz gönderilen ödev yok.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ JS Menü Aç-Kapat -->
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        sidebar.classList.toggle("active");
+    }
+
+    function showSection(id) {
+        document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        
+        document.querySelectorAll('#sidebar a').forEach(el => el.classList.remove('active'));
+        document.querySelector(`#sidebar a[onclick*="${id}"]`).classList.add('active');
+
+        if (window.innerWidth < 768) {
+            document.getElementById("sidebar").classList.remove("active");
+        }
+    }
+</script>
+
+</body>
+</html>
